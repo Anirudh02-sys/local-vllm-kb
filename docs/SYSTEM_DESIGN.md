@@ -19,13 +19,13 @@ Everything runs locally. Process recipes, machine configurations, and orchestrat
 This proposal is written without direct access to Nox's internal systems, so several assumptions are made explicit here. They should be validated with the Nox team before implementation.
 
 - Nox is moving from a small founding team to a much larger team, and onboarding new software, controls, operations, and factory-floor employees will create repeated knowledge-transfer pressure.
-- Some critical operating knowledge is currently informal: in founder conversations, Slack threads, postmortems, ticket comments, or the lived experience of people who have debugged the machines before.
+- Some critical operating knowledge is currently informal: in founder conversations, Slack threads ( could be any communication SW), postmortems, ticket comments, or the lived experience of people who have debugged the machines before.
 - The most valuable knowledge is not just vendor documentation or software documentation alone, but the connection between vendor hardware behavior, Nox-specific automation software, safety procedures, and real factory operating conditions.
 - Nox has, or can reasonably build, an equipment registry that maps machine IDs to model, firmware, site, and install/configuration metadata.
 - Vendor manuals, SOPs, alarm/fault-code tables, internal engineering docs, maintenance records, and onboarding material are available in exportable formats, even if some require OCR or cleanup.
 - Safety-critical workflows such as lockout/tagout, hot work, crane operation, or press operation require stricter answer policies than general onboarding questions.
 - A founder, safety lead, or domain expert can periodically review promoted knowledge and help curate a golden evaluation set.
-- Nox prefers a local or on-prem deployment because process recipes, machine configurations, and orchestration code are sensitive intellectual property.
+- Nox prefers a local or on-prem deployment because process recipes, machine configurations, and orchestration code are sensitive intellectual property - gives security during long run.
 - A single local GPU is feasible for the first version, and multi-GPU local hardware is feasible if the system proves valuable.
 - A meaningful share of early queries will be structured lookups, such as fault codes, part numbers, document lookup, machine IDs, and SOP references, making deterministic bypasses worth building from the start.
 
