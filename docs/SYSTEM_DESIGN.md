@@ -1,13 +1,9 @@
 # Nox Metals Knowledge Base — System Design Document
 
-**Author:** Anirudh K. — MS CS, University of Michigan
-**Date:** June 11, 2026
-**Status:** Proposal (V1 MVP + Ambitious Version)
-**Deployment target:** Fully local / on-prem (vLLM-served open-weight models)
-
+**Author:** Anirudh Krishnan — MS CS, University of Michigan
 ---
 
-## 0. Executive Summary
+## Executive Summary
 
 Nox Metals is scaling from a 4-person core team to 45+ people while operating highly automated metal factories. The scaling bottleneck is not headcount — it is that the company's most valuable knowledge lives at the **seam between vendor hardware and Nox's proprietary orchestration software**, and that seam currently exists only in four people's heads. Every new hire converts that knowledge gap into founder interrupts.
 
@@ -16,15 +12,32 @@ This document proposes an on-prem, citation-first knowledge and onboarding syste
 - **V1 (MVP):** A single-GPU, vLLM-served RAG system with a three-tier memory architecture, a deterministic query router that answers ~30–40% of queries without touching the GPU, KV-cache-resident static context for fast Time-to-First-Token (TTFT), and full Langfuse tracing from day one.
 - **Ambitious Version:** A multi-GPU platform with a larger tensor-parallel model, prefix-cache-aware request routing across replicas, multimodal ingestion (wiring diagrams, floor photos), voice access for hands-busy operators, and agentic knowledge-capture loops that turn Slack threads and resolved tickets into reviewed KB articles.
 
-Everything runs locally. Process recipes, machine configurations, and orchestration code are Nox's moat; none of it leaves the building.
+Everything runs locally. Process recipes, machine configurations, and orchestration code are identified as Nox's moat. 
+
+## Assumptions
+
+This proposal is written without direct access to Nox's internal systems, so several assumptions are made explicit here. They should be validated with the Nox team before implementation.
+
+- Nox is moving from a small founding team to a much larger team, and onboarding new software, controls, operations, and factory-floor employees will create repeated knowledge-transfer pressure.
+- Some critical operating knowledge is currently informal: in founder conversations, Slack threads, postmortems, ticket comments, or the lived experience of people who have debugged the machines before.
+- The most valuable knowledge is not just vendor documentation or software documentation alone, but the connection between vendor hardware behavior, Nox-specific automation software, safety procedures, and real factory operating conditions.
+- Nox has, or can reasonably build, an equipment registry that maps machine IDs to model, firmware, site, and install/configuration metadata.
+- Vendor manuals, SOPs, alarm/fault-code tables, internal engineering docs, maintenance records, and onboarding material are available in exportable formats, even if some require OCR or cleanup.
+- Safety-critical workflows such as lockout/tagout, hot work, crane operation, or press operation require stricter answer policies than general onboarding questions.
+- A founder, safety lead, or domain expert can periodically review promoted knowledge and help curate a golden evaluation set.
+- Nox prefers a local or on-prem deployment because process recipes, machine configurations, and orchestration code are sensitive intellectual property.
+- A single local GPU is feasible for the first version, and multi-GPU local hardware is feasible if the system proves valuable.
+- A meaningful share of early queries will be structured lookups, such as fault codes, part numbers, document lookup, machine IDs, and SOP references, making deterministic bypasses worth building from the start.
 
 ---
 
 ## 1. The Core Problem
 
-### 1.1 What actually breaks when a hard-tech company goes 4 → 45
+### 1.1 What actually breaks at scale 
 
-A generic chatbot solves "search is annoying." That is not Nox's problem. Nox's problem is specific to automated manufacturing:
+Nox's problem is specific to automated manufacturing:
+
+Here is a representative example I considered. This is not a claim about a real Nox fault; it is meant to illustrate the kind of hidden cross-domain knowledge the system should capture:
 
 **The knowledge that matters most is interface knowledge.** A vendor manual tells you what fault `E-217` means on the press brake. The git history tells you what the orchestration service does when it receives that fault. But *only a founder knows* that `E-217` fires spuriously when the hydraulic oil is below 18°C, that the correct response is a warm-up cycle rather than the vendor's prescribed reset, and that the software has a hardcoded retry that masks the first two occurrences. That three-way intersection — vendor hardware quirk × physical reality × proprietary software behavior — is exactly the knowledge that:
 
@@ -59,7 +72,7 @@ A **machine-aware troubleshooting and onboarding assistant** that:
 - Captures founder answers *once* and makes them canonical
 - Treats safety content as a separate, stricter class of knowledge
 
-Generic chat over documents is the baseline it must beat, not the goal.
+Generic chat over documents is the baseline it must beat. Generic chat is not the goal I set. 
 
 ---
 
